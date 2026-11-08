@@ -1,0 +1,31 @@
+{
+  "took": 5,
+  "aggregations": {
+    "by_indicator": {
+      "buckets": [
+        {
+          "key": "185.220.101.45",
+          "doc_count": 7,
+          "indicator_type": {"buckets": [{"key": "Intel::ADDR", "doc_count": 7}]},
+          "seen_where": {"buckets": [{"key": "Conn::IN_ORIG", "doc_count": 7}]},
+          "sources": {"buckets": [{"key": "ThreatFox (Remcos)", "doc_count": 7}]},
+          "affected_hosts": {"buckets": [{"key": "192.168.1.120", "doc_count": 7}]},
+          "destination_ips": {"buckets": [{"key": "185.220.101.45", "doc_count": 7}]},
+          "first_seen": {"value_as_string": "2026-11-08T02:10:00.000Z"},
+          "last_seen": {"value_as_string": "2026-11-08T09:45:00.000Z"}
+        },
+        {
+          "key": "evil-c2-domain.example",
+          "doc_count": 2,
+          "indicator_type": {"buckets": [{"key": "Intel::DOMAIN", "doc_count": 2}]},
+          "seen_where": {"buckets": [{"key": "DNS::IN_REQUEST", "doc_count": 2}]},
+          "sources": {"buckets": [{"key": "URLhaus", "doc_count": 2}]},
+          "affected_hosts": {"buckets": [{"key": "192.168.1.55", "doc_count": 2}]},
+          "destination_ips": {"buckets": [{"key": "203.0.113.9", "doc_count": 2}]},
+          "first_seen": {"value_as_string": "2026-11-08T05:00:00.000Z"},
+          "last_seen": {"value_as_string": "2026-11-08T05:01:00.000Z"}
+        }
+      ]
+    }
+  }
+}

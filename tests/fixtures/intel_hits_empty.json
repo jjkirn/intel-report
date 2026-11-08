@@ -1,0 +1,8 @@
+{
+  "took": 3,
+  "aggregations": {
+    "by_indicator": {
+      "buckets": []
+    }
+  }
+}

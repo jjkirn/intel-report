@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Threat Intel Hits Report - {{ report_date }}</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Arial, sans-serif; margin: 2em; color: #222; background: #fafafa; }
+  h1 { margin-bottom: 0.1em; }
+  .subtitle { color: #666; margin-bottom: 1.5em; }
+  h2 { border-bottom: 2px solid #ddd; padding-bottom: 0.3em; margin-top: 2em; }
+  .note { color: #666; font-size: 0.9em; margin-bottom: 1em; }
+  table { border-collapse: collapse; width: 100%; margin-bottom: 1em; background: #fff; }
+  th, td { border: 1px solid #ddd; padding: 6px 10px; text-align: left; vertical-align: top; font-size: 0.92em; }
+  th { background: #eee; }
+  tr:nth-child(even) { background: #f6f6f6; }
+  .indicator { font-weight: bold; font-family: monospace; }
+  .ip-list { margin: 0; padding-left: 1.1em; }
+  .ip-list li { margin-bottom: 0.4em; }
+  .org { color: #555; }
+  .geo { color: #888; font-size: 0.85em; }
+  .lookup-link { font-size: 0.85em; }
+  .empty { color: #888; font-style: italic; }
+  .count-badge { background: #fee; border-radius: 3px; padding: 1px 6px; font-size: 0.85em; font-weight: bold; }
+  .ok-banner { background: #eefbea; border: 1px solid #bfe8b8; border-radius: 4px; padding: 0.8em 1em; margin-bottom: 1.5em; }
+  .host-badge { background: #eef; border-radius: 3px; padding: 1px 6px; font-size: 0.85em; margin-right: 3px; display: inline-block; margin-bottom: 2px; }
+  .type-addr { color: #a33; }
+  .type-domain { color: #336; }
+</style>
+</head>
+<body>
+<h1>Threat Intel Hits Report</h1>
+<div class="subtitle">{{ report_date }} &middot; last {{ lookback_hours }}h &middot; source: Zeek Intel Framework (so-intel-feed)</div>
+
+{% if hits %}
+<div class="note">
+  Local hosts that triggered a match against the threat-intel feed (ThreatFox,
+  Feodo Tracker, URLhaus) in this window. Indicators known to cause false
+  positives on shared-hosting platforms (GitHub, AWS, Cloudflare, etc.) are
+  already excluded at the source by so-intel-feed, so anything below is worth
+  a look.
+</div>
+<table>
+<tr><th>Indicator</th><th>Type</th><th>Hits</th><th>Local host(s)</th><th>Seen as</th><th>Feed source</th><th>First / last seen</th><th>Related IP(s) (enriched)</th></tr>
+{% for h in hits %}
+<tr>
+  <td class="indicator">{{ h.indicator }}</td>
+  <td class="{% if h.indicator_type == 'Intel::ADDR' %}type-addr{% else %}type-domain{% endif %}">{{ h.indicator_type }}</td>
+  <td><span class="count-badge">{{ h.hit_count }}</span></td>
+  <td>
+    {% for host in h.affected_hosts %}<span class="host-badge">{{ host }}</span>{% endfor %}
+  </td>
+  <td>{{ h.seen_where | join(", ") if h.seen_where else "&mdash;" }}</td>
+  <td>{{ h.sources | join(", ") if h.sources else "&mdash;" }}</td>
+  <td>{{ h.first_seen }}<br>{{ h.last_seen }}</td>
+  <td>
+    {% if h.enriched %}
+    <ul class="ip-list">
+    {% for e in h.enriched %}
+      <li>
+        <strong>{{ e.ip }}</strong>
+        {% if e.org %}<span class="org"> &mdash; {{ e.org }}</span>{% endif %}
+        {% if e.city or e.country %}<div class="geo">{{ [e.city, e.region, e.country] | select | join(", ") }}</div>{% endif %}
+        <div class="lookup-link"><a href="https://ipinfo.io/{{ e.ip }}" target="_blank" rel="noopener">more info &rarr;</a></div>
+      </li>
+    {% endfor %}
+    </ul>
+    {% else %}<span class="empty">no public IP to enrich</span>{% endif %}
+  </td>
+</tr>
+{% endfor %}
+</table>
+{% else %}
+<div class="ok-banner">No threat-intel hits in this window &mdash; nothing on your network matched a known-bad IP or domain.</div>
+{% endif %}
+
+<p class="note">Generated {{ generated_at }} by intel-report.</p>
+</body>
+</html>
