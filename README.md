@@ -121,6 +121,23 @@ These run entirely against fixture data in `tests/fixtures/` - they don't
 touch your real Elasticsearch or ipinfo.io, so they're safe to run
 anywhere, including before you've even set up `config.yaml`.
 
+## Checking further back (e.g. while traveling)
+
+By default the report only looks at the last 24 hours. If you want to look
+back further on demand - say you've been out of town for a week and want to
+catch up - use `--hours` to override the window for just that one run:
+
+```bash
+source .env
+python3 intel_report.py --hours 168 --debug   # 168h = 7 days
+```
+
+This writes its own `intel_report_lookback_168h.html` file rather than
+touching `index.html`, so it won't disturb what your daily cron job has
+already published as the "latest" report. The `--debug` flag also prints a
+quick summary straight to your terminal, so you don't even need to open the
+HTML file for a fast gut check.
+
 ## Notes / things to double check once it's live
 
 - **Field mapping assumption**: `intel.indicator`, `intel.indicator_type`,

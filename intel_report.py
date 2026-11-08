@@ -97,12 +97,25 @@ def main():
                          help="Override output filename (default: intel_report_YYYY-MM-DD.html)")
     parser.add_argument("--debug", action="store_true",
                          help="Print per-indicator detail to stdout")
+    parser.add_argument("--hours", type=int, default=None,
+                         help="Override the lookback window in hours for this run only "
+                              "(e.g. --hours 168 for the last 7 days). Does not touch "
+                              "config.yaml, and does not overwrite index.html, so your "
+                              "regular daily report/cron job is unaffected.")
     args = parser.parse_args()
 
     try:
         cfg = load_config(args.config)
     except ConfigError as e:
         die(str(e))
+
+    if args.hours is not None:
+        cfg["report"]["lookback_hours"] = args.hours
+        # A one-off lookback (e.g. checking a week while traveling) shouldn't
+        # clobber the stable "latest daily report" index.html that cron relies
+        # on - force a distinct output filename unless one was given explicitly.
+        if args.out_name is None:
+            args.out_name = f"intel_report_lookback_{args.hours}h.html"
 
     try:
         hits = build_report(cfg)
@@ -119,14 +132,17 @@ def main():
     out_path = os.path.join(out_dir, out_name)
     with open(out_path, "w") as f:
         f.write(html)
-
-    # Also write/refresh an "index.html" so there's always a stable latest-report URL.
-    latest_path = os.path.join(out_dir, "index.html")
-    with open(latest_path, "w") as f:
-        f.write(html)
-
     print(f"Wrote {out_path}")
-    print(f"Wrote {latest_path}")
+
+    if args.hours is None:
+        # Only refresh the stable "latest daily report" link for a normal
+        # (default-window) run - a one-off --hours lookback shouldn't
+        # replace what cron's daily run already published there.
+        latest_path = os.path.join(out_dir, "index.html")
+        with open(latest_path, "w") as f:
+            f.write(html)
+        print(f"Wrote {latest_path}")
+
     print(f"Intel hits: {len(hits)} distinct indicator(s)")
 
     if args.debug:
