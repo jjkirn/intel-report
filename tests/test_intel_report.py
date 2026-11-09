@@ -4,12 +4,15 @@ needed. Run with: python3 -m pytest tests/ -v
 
 import json
 import os
+import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from es_client import parse_indicator_buckets
 from intel_report import enrich_hits
+
+SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 FIXTURES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures")
 
@@ -106,6 +109,17 @@ def test_enrich_hits_enriches_destination_ips_for_domain_indicator():
     enrich_hits(hits, enricher)
     assert set(enricher.looked_up) == {"203.0.113.9", "203.0.113.10"}
     assert len(hits[0]["enriched"]) == 2
+
+
+def test_hours_flag_is_wired_into_the_cli():
+    """--hours should exist as a real CLI flag (so a one-off --hours 168
+    lookback while traveling doesn't require editing config.yaml)."""
+    result = subprocess.run(
+        [sys.executable, os.path.join(SCRIPT_DIR, "intel_report.py"), "--help"],
+        capture_output=True, text=True,
+    )
+    assert "--hours" in result.stdout
+    assert "--out-name" in result.stdout
 
 
 if __name__ == "__main__":
